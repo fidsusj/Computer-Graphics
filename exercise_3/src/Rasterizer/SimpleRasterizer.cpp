@@ -90,7 +90,7 @@ void SimpleRasterizer::TransformAndLightTriangle(Triangle &t,
   //Implementieren sie die Transformationen und die Beleuchtung des Dreiecks t.
   //Verwenden Sie dazu die Funktion LightVertex.
   //Das fertige Dreieck t soll in Windowkoordinaten vorliegen. Da nach image
-  //gerendert wird, brauchen Sie dafür die Höhe und Breite von image.
+  //gerendert wird, brauchen Sie dafï¿½r die Hï¿½he und Breite von image.
 }
 
 
@@ -103,10 +103,23 @@ void SimpleRasterizer::RenderMesh(const Mesh *mesh)
   // Calculate the model transformations for the triangle mesh "mesh", as well as the
   // correct transformations for the normals. Afterwards, transform and light each
   // triangle of the mesh (TransformAndLightTriangle()) and draw it with DrawTriangle().
-  //Berechnen Sie Modelltransformation für das Dreiecksnetz mesh, 
-  //sowie die korrekte Transformation für seine Normalen.
-  //Transformieren und beleuchten Sie anschließend jedes Dreieck des Netzes
+  //Berechnen Sie Modelltransformation fï¿½r das Dreiecksnetz mesh, 
+  //sowie die korrekte Transformation fï¿½r seine Normalen.
+  //Transformieren und beleuchten Sie anschlieï¿½end jedes Dreieck des Netzes
   //(TransformAndLightTriangle) und zeichnen Sie es (DrawTriangle).
+
+  glm::mat4x4 transformationMatrixModel = mesh->GetGlobalTransformation();
+  glm::mat4x4 transformationMatrixNormal = glm::inverseTranspose(transformationMatrixModel);
+
+  std::vector<Triangle> triangles;
+  for (Triangle triangle : mesh->GetTriangles()) {
+    TransformAndLightTriangle(triangle, transformationMatrixModel, transformationMatrixNormal);
+    triangles.push_back(triangle);
+  }
+
+  for (Triangle triangle : triangles) {
+    DrawTriangle(triangle);
+  }
 }
 
 void SimpleRasterizer::ScanObject(const Raytracer::Scenes::SceneObject *object)
