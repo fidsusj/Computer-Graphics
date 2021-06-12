@@ -162,6 +162,14 @@ bool SimpleRasterizer::Render(Image &image, const Scene &scene)
   //Erstellen Sie dazu erst die Kameratransformation (viewTransform)
   //und die Projektionstransformation (projectionTransform)und danach die 
   //viewProjectionTransform in dem Sie die beiden korrekt aufeinander anwenden.
+
+  glm::mat4x4 viewTransform = camera->GetGlobalToLocal();
+
+  const float near = camera->GetNearClip();
+  const float far = camera->GetFarClip();
+
+  glm::mat4x4 projectionTransform = glm::perspective(camera->GetFov(), camera->GetAspect(), near, far);
+  viewProjectionTransform = projectionTransform * viewTransform;
   
   // Render all meshes we found.
   this->image = &image;
