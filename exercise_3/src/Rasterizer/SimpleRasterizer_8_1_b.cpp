@@ -91,23 +91,6 @@ void SimpleRasterizer::TransformAndLightTriangle(Triangle &t,
   //Verwenden Sie dazu die Funktion LightVertex.
   //Das fertige Dreieck t soll in Windowkoordinaten vorliegen. Da nach image
   //gerendert wird, brauchen Sie daf�r die H�he und Breite von image.
-  for (int i = 0; i < 3; ++i) {
-    const glm::vec4 homogeneousPosition(t.position[i], 1);
-    const glm::vec4 homogeneousNormal(t.normal[i], 1);
-    const glm::vec4 worldPosition = modelTransform * homogeneousPosition;
-    const glm::vec3 worldNormal = glm::vec3(modelTransformNormals * homogeneousNormal);
-    const glm::vec4 projectedPosition = viewProjectionTransform * worldPosition;
-    const glm::vec3 normalizedPosition = glm::vec3(projectedPosition / projectedPosition.w);
-
-    t.color[i] = LightVertex(worldPosition, worldNormal, t.color[i]);
-    t.position[i] = normalizedPosition;
-
-    const float halfX = image->GetWidth() / 2.;
-    const float halfY = image->GetHeight() / 2.;
-
-    t.position[i].x =  t.position[i].x * halfX + halfX;
-    t.position[i].y = -t.position[i].y * halfY + halfY;
-  }
 }
 
 
@@ -124,19 +107,6 @@ void SimpleRasterizer::RenderMesh(const Mesh *mesh)
   //sowie die korrekte Transformation f�r seine Normalen.
   //Transformieren und beleuchten Sie anschlie�end jedes Dreieck des Netzes
   //(TransformAndLightTriangle) und zeichnen Sie es (DrawTriangle).
-
-  glm::mat4x4 transformationMatrixModel = mesh->GetGlobalTransformation();
-  glm::mat4x4 transformationMatrixNormal = glm::inverseTranspose(transformationMatrixModel);
-
-  std::vector<Triangle> triangles;
-  for (Triangle triangle : mesh->GetTriangles()) {
-    TransformAndLightTriangle(triangle, transformationMatrixModel, transformationMatrixNormal);
-    triangles.push_back(triangle);
-  }
-
-  for (Triangle triangle : triangles) {
-    DrawTriangle(triangle);
-  }
 }
 
 void SimpleRasterizer::ScanObject(const Raytracer::Scenes::SceneObject *object)

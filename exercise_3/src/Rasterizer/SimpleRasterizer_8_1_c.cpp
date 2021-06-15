@@ -124,19 +124,6 @@ void SimpleRasterizer::RenderMesh(const Mesh *mesh)
   //sowie die korrekte Transformation f�r seine Normalen.
   //Transformieren und beleuchten Sie anschlie�end jedes Dreieck des Netzes
   //(TransformAndLightTriangle) und zeichnen Sie es (DrawTriangle).
-
-  glm::mat4x4 transformationMatrixModel = mesh->GetGlobalTransformation();
-  glm::mat4x4 transformationMatrixNormal = glm::inverseTranspose(transformationMatrixModel);
-
-  std::vector<Triangle> triangles;
-  for (Triangle triangle : mesh->GetTriangles()) {
-    TransformAndLightTriangle(triangle, transformationMatrixModel, transformationMatrixNormal);
-    triangles.push_back(triangle);
-  }
-
-  for (Triangle triangle : triangles) {
-    DrawTriangle(triangle);
-  }
 }
 
 void SimpleRasterizer::ScanObject(const Raytracer::Scenes::SceneObject *object)
@@ -180,13 +167,6 @@ bool SimpleRasterizer::Render(Image &image, const Scene &scene)
   //und die Projektionstransformation (projectionTransform)und danach die 
   //viewProjectionTransform in dem Sie die beiden korrekt aufeinander anwenden.
 
-  glm::mat4x4 viewTransform = camera->GetGlobalToLocal();
-
-  const float near = camera->GetNearClip();
-  const float far = camera->GetFarClip();
-
-  glm::mat4x4 projectionTransform = glm::perspective(camera->GetFov(), camera->GetAspect(), near, far);
-  viewProjectionTransform = projectionTransform * viewTransform;
   
   // Render all meshes we found.
   this->image = &image;
