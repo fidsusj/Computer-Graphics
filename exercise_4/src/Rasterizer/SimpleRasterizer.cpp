@@ -30,27 +30,142 @@ bool SimpleRasterizer::CompareTriangle(const Triangle &t1, const Triangle &t2)
 }
 
 
-void SimpleRasterizer::DrawSpan(int x1, int x2, int y, float z1, float z2, vec3 &color1,
-                vec3 &color2)
+void SimpleRasterizer::DrawSpan(int x1, int x2, int y, float z1, float z2, vec3 &color1, vec3 &color2)
 {
-  // TODO Aufgabe 2: Ersetzen des Zeichnens der Eckpunkte 
-  // durch Dreiecksrasterisierer, Gouraud Shading, [z-Buffering]
+    // TODO Aufgabe 2: Ersetzen des Zeichnens der Eckpunkte 
+    // durch Dreiecksrasterisierer, Gouraud Shading, [z-Buffering]
+    for (int x = x1; x < x2; x++)
+    {
+        if ((x > 0) && (x < image->GetWidth()) && (y > 0) && (y < image->GetHeight()))
+        {
+            image->SetPixel(x, y, color1);
+        }
+    }
 }
 
-void SimpleRasterizer::DrawTriangle(const Triangle &t)
+void SimpleRasterizer::DrawTriangle(const Triangle& t)
 {
-  for (int i = 0; i < 3; ++i)
-  {
-    int x = (int)t.position[i].x;
-    int y = (int)t.position[i].y;
-    if ((x > 0) && (x < image->GetWidth()) && (y > 0) && (y < image->GetHeight()))
+    // for (int i = 0; i < 3;/**/ ++i)
+    // {
+    //     int x = (int)t.position[i].x;
+    //     int y = (int)t.position[i].y;
+    //     if ((x > 0) && (x < image->GetWidth()) && (y > 0) && (y < image->GetHeight()))
+    //     {
+    //         image->SetPixel(x, y, t.color[i]);
+    //     }
+    // }
+
+    // TODO Aufgabe 2: Ersetzen des Zeichnens der Eckpunkte 
+    // durch Dreiecksrasterisierer, Gouraud Shading, [z-Buffering]
+    float x_t = numeric_limits<float>::max();
+    float y_t = numeric_limits<float>::max();
+    float y_b = 0;
+
+    int p1_index = 0;
+    int p2_index = 0;
+    int p3_index = 0;
+
+    // Search for P2 index
+    for (int i = 0; i < 3; i++)
     {
-      image->SetPixel(x, y, t.color[i]);
+        const float x = t.position[i].x;
+        const float y = t.position[i].y;
+
+        if (y < y_t)
+        {
+            p2_index = i;
+            x_t = x;
+            y_t = y;
+        }
+
+        if (y > y_b)
+        {
+            y_b = y;
+        }
     }
-  }
-  // TODO Aufgabe 2: Ersetzen des Zeichnens der Eckpunkte 
-  // durch Dreiecksrasterisierer, Gouraud Shading, [z-Buffering]
+
+    float min_x = numeric_limits<float>::max();
+
+    // Search for P1 index
+    for (int i = 0; i < 3; i++)
+    {
+        if (i == p2_index)
+        {
+            continue;
+        }
+      
+        const float x = t.position[i].x;
+
+        if (x < min_x)
+        {
+            p1_index = i;
+            min_x = x;
+        }
+    }
+
+    // Search for P3 index
+    for (int i = 0; i < 3; i++)
+    {
+        if (i == p1_index || i == p2_index)
+        {
+            continue;
+        }
+
+        p3_index = i;
+    }
+
+    // Sort points of triangle so that P2 is topmost point, P1 leftmost point (ignoring P2), P3 remaining point
+    vec3 points[3] = { t.position[p1_index], t.position[p2_index], t.position[p3_index] };
+
+    int y = int(y_t);
+  
+    float x_l = x_t;
+    int cur_l = 1;
+    int next_l = cur_l - 1;
+
+    float x_r = x_t;
+    int cur_r = 1;
+    int next_r = cur_r + 1;
+
+    vec3 color1 = t.color[0];
+    vec3 color2 = t.color[1];
+
+    do
+    {
+        if (next_l < 0)
+        {
+            next_l = 2;
+        }
+
+        if (next_r > 2)
+        {
+            next_r = 0;
+        }
+
+        DrawSpan(int(x_l), int(x_r), y, 0, 0, color1, color2);
+    
+        y++;
+
+        x_l += (points[next_l].x - points[cur_l].x) / (points[next_l].y - points[cur_l].y);
+        x_r += (points[next_r].x - points[cur_r].x) / (points[next_r].y - points[cur_r].y);
+
+        const float y_next_l = points[next_l].y;
+        const float y_next_r = points[next_r].y;
+    
+        if (y >= y_next_l)
+        {
+            cur_l = next_l;
+            next_l--;
+        }
+
+        if (y >= y_next_r)
+        {
+            cur_r = next_r;
+            next_r++;
+        }
+    } while (y < y_b);
 }
+
 
 vec3 SimpleRasterizer::LightVertex(vec4 position, vec3 normal, vec3 color)
 {
