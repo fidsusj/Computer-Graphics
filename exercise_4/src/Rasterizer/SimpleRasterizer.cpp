@@ -34,18 +34,24 @@ void SimpleRasterizer::DrawSpan(int x1, int x2, int y, float z1, float z2, vec3 
 {
     // TODO Aufgabe 2: Ersetzen des Zeichnens der Eckpunkte 
     // durch Dreiecksrasterisierer, Gouraud Shading, [z-Buffering]
-    for (int x = x1; x < x2; x++)
+    
+    // Check if line does not lie outside of image
+    if ((x1 < 0 && x2 < 0) || (x1 >= image->GetWidth() && x2 >= image->GetWidth()) || y < 0 || y >= image->GetHeight())
+        return;
+    
+    int x_min = clamp(std::min(x1, x2), 0, image->GetWidth()-1);  // -1 because pixel values start at 0
+    int x_max = clamp(std::max(x1, x2), 0, image->GetWidth()-1);
+
+    // Included on the left side, but excluded on the right side (therefore no "<=")
+    for (int x = x_min; x < x_max; x++)
     {
-        if ((x > 0) && (x < image->GetWidth()) && (y > 0) && (y < image->GetHeight()))
-        {
-            image->SetPixel(x, y, color1);
-        }
+        image->SetPixel(x, y, color1);
     }
 }
 
 void SimpleRasterizer::DrawTriangle(const Triangle& t)
 {
-    // for (int i = 0; i < 3;/**/ ++i)
+    // for (int i = 0; i < 3; ++i)
     // {
     //     int x = (int)t.position[i].x;
     //     int y = (int)t.position[i].y;
