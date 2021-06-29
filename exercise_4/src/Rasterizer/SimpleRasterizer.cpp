@@ -65,7 +65,7 @@ void SimpleRasterizer::DrawTriangle(const Triangle& t)
     // durch Dreiecksrasterisierer, Gouraud Shading, [z-Buffering]
     float x_t = numeric_limits<float>::max();
     float y_t = numeric_limits<float>::max();
-    float y_b = 0;
+    int y_b = 0;
 
     int p1_index = 0;
     int p2_index = 0;
@@ -84,21 +84,20 @@ void SimpleRasterizer::DrawTriangle(const Triangle& t)
             y_t = y;
         }
 
+        // Determine y_b on the run
         if (y > y_b)
         {
-            y_b = y;
+            y_b = int(round(y));
         }
     }
 
-    float min_x = numeric_limits<float>::max();
 
     // Search for P1 index
+    float min_x = numeric_limits<float>::max();
     for (int i = 0; i < 3; i++)
     {
         if (i == p2_index)
-        {
             continue;
-        }
       
         const float x = t.position[i].x;
 
@@ -113,9 +112,7 @@ void SimpleRasterizer::DrawTriangle(const Triangle& t)
     for (int i = 0; i < 3; i++)
     {
         if (i == p1_index || i == p2_index)
-        {
             continue;
-        }
 
         p3_index = i;
     }
@@ -123,7 +120,7 @@ void SimpleRasterizer::DrawTriangle(const Triangle& t)
     // Sort points of triangle so that P2 is topmost point, P1 leftmost point (ignoring P2), P3 remaining point
     vec3 points[3] = { t.position[p1_index], t.position[p2_index], t.position[p3_index] };
 
-    int y = int(y_t);
+    int y = int(round(y_t));
   
     float x_l = x_t;
     int cur_l = 1;
@@ -133,30 +130,27 @@ void SimpleRasterizer::DrawTriangle(const Triangle& t)
     int cur_r = 1;
     int next_r = cur_r + 1;
 
-    vec3 color1 = t.color[0];
-    vec3 color2 = t.color[1];
+    // We do not do a perspectively correct linear interpolation of the color for now
+    // Therefore we hard code the color used for every pixel and always pass 0 as z value for DrawSpan.
+    vec3 color = t.color[0];
 
     do
     {
         if (next_l < 0)
-        {
             next_l = 2;
-        }
 
         if (next_r > 2)
-        {
             next_r = 0;
-        }
 
-        DrawSpan(int(x_l), int(x_r), y, 0, 0, color1, color2);
+        DrawSpan(int(round(x_l)), int(round(x_r)), y, 0, 0, color, color);
     
         y++;
 
         x_l += (points[next_l].x - points[cur_l].x) / (points[next_l].y - points[cur_l].y);
         x_r += (points[next_r].x - points[cur_r].x) / (points[next_r].y - points[cur_r].y);
 
-        const float y_next_l = points[next_l].y;
-        const float y_next_r = points[next_r].y;
+        int y_next_l = int(round(points[next_l].y));
+        int y_next_r = int(round(points[next_r].y));
     
         if (y >= y_next_l)
         {

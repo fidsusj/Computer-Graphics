@@ -186,15 +186,15 @@ void Render(int width, int height, bool rotate, const char *filename)
 int main(int argc, char *argv[])
 {
   // Set this to true to have the geometry rotate by default.
-  bool rotate = false;
+  bool rotate = true;
 
   // Set this to false to use just a single triangle by default, 
   // or to true to load a more complex geometry.
-  bool loadFile = false;
+  bool loadFile = true;
 
   // Set this to NULL to use just a single triangle to default,
   // or to a filename to load a more complex geometry.
-  const char* filename = NULL;  // "data/kopf_subdivided.raw";
+  const char* filename = "data/kopf_subdivided.raw";
 
   for (int i = 1; ((i < argc) && (i < 3)); ++i)
   {
