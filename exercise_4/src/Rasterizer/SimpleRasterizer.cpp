@@ -35,17 +35,30 @@ void SimpleRasterizer::DrawSpan(int x1, int x2, int y, float z1, float z2, vec3 
     // TODO Aufgabe 2: Ersetzen des Zeichnens der Eckpunkte 
     // durch Dreiecksrasterisierer, Gouraud Shading, [z-Buffering]
     
-    // Check if line does not lie outside of image
-    if ((x1 < 0 && x2 < 0) || (x1 >= image->GetWidth() && x2 >= image->GetWidth()) || y < 0 || y >= image->GetHeight())
-        return;
-    
-    int x_min = clamp(std::min(x1, x2), 0, image->GetWidth()-1);  // -1 because pixel values start at 0
-    int x_max = clamp(std::max(x1, x2), 0, image->GetWidth()-1);
+    // Determine ordering of x1 and x2
+    int xMin = x1 <= x2 ? x1 : x2;
+    int xMax = x1 > x2 ? x1 : x2;
 
-    // Included on the left side, but excluded on the right side (therefore no "<=")
-    for (int x = x_min; x < x_max; x++)
-    {
-        image->SetPixel(x, y, color1);
+    // limit xMin and xMax to the size of the image
+    xMin = clamp(xMin, 0, image->GetWidth());
+    xMax = clamp(xMax, 0, image->GetWidth());
+
+    const double zDelta = ((double) z2 - z1) / ((double) xMax - xMin);
+    const int xDelta = xMax - xMin;
+    const int yOffset = y * image->GetWidth();
+    double z = z1;
+
+    // draw span
+    int t = 0;
+    for (int x = xMin; x < xMax; ++x) {
+        if (z < zBuffer[x + yOffset]) {
+            zBuffer[x + yOffset] = z;
+            auto color = color1 * (1 - (t / (float)xDelta)) + color2 * (t / (float)xDelta);
+            image->SetPixel(x, y, color);
+        }
+
+        z += zDelta;
+        t++;
     }
 }
 
